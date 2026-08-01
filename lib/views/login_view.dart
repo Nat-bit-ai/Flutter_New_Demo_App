@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:developer' as devtools show log;
 
 import 'package:flutter_app/constants/routes.dart';
+import 'package:flutter_app/utilities/error_dialog.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -28,70 +29,76 @@ class _LoginViewState extends State<LoginView> {
     _passwordController.dispose();
     super.dispose();
   }
-
-  @override // Added @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Login'),
-      ),
-      body: Column(
-            children: [
-              TextField( // Removed const
-                controller: _emailController,
-                decoration: const InputDecoration( 
-                  labelText: 'Email',
-                ),
-                enableSuggestions: false,
-                autocorrect: false,
-                
-              ),
-              TextField( // Removed const
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: 'Password',
-                ),
-                obscureText: true,
-                enableSuggestions: false,
-                autocorrect: false,
-              ),
-              TextButton(
-                onPressed: () async {
-                  final email = _emailController.text;
-                  final password = _passwordController.text;
-                  try{
-                    final userCredential = await FirebaseAuth.instance
-                        .signInWithEmailAndPassword(
-                      email: email,
-                      password: password,
-                    );
-                    Navigator.of(context).pushNamedAndRemoveUntil(homeRoute, (route) => false);
-                  } on FirebaseAuthException catch (e) {
-  if (e.code == 'user-not-found') {
-    devtools.log('User not found');
-  } else if (e.code == 'wrong-password') {
-    devtools.log('Wrong password');
-  } else if (e.code == 'invalid-credential') {
-    // Newer Firebase Auth versions return this generic code
-    // for both wrong password and unregistered email, to
-    // avoid leaking which emails are registered.
-    devtools.log('Incorrect email or password');
-  } else {
-    devtools.log('An unknown error occurred: ${e.code}');
-  }
-}
-                }, // Properly closed onPressed callback
-                child: const Text('Sign In'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamedAndRemoveUntil('/register/', (route) => false);
-                },
-                child: const Text('Not Registered yet? Register here! '),
-              ),
-            ],
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: const Text('Login'),
+    ),
+    body: Column(
+      children: [
+        TextField(
+          controller: _emailController,
+          decoration: const InputDecoration( 
+            labelText: 'Email',
           ),
-    );
-  }
+          enableSuggestions: false,
+          autocorrect: false,
+        ),
+        TextField(
+          controller: _passwordController,
+          decoration: const InputDecoration(
+            labelText: 'Password',
+          ),
+          obscureText: true,
+          enableSuggestions: false,
+          autocorrect: false,
+        ),
+        TextButton(
+          onPressed: () async {
+            final email = _emailController.text;
+            final password = _passwordController.text;
+            try {
+              await FirebaseAuth.instance.signInWithEmailAndPassword(
+                email: email,
+                password: password,
+              );
+              
+              if (!context.mounted) return;
+              Navigator.of(context).pushNamedAndRemoveUntil(
+                homeRoute, 
+                (route) => false,
+              );
+            } on FirebaseAuthException catch (e) {
+              if (!context.mounted) return;
+              if (e.code == 'user-not-found') {
+                await showErrorDialog(context, 'User not found');
+              } else if (e.code == 'wrong-password') {
+                await showErrorDialog(context, 'Wrong password');
+              } else if (e.code == 'invalid-credential') {
+                await showErrorDialog(context, 'Invalid credentials');
+              } else {
+                await showErrorDialog(context, 'An unknown error occurred: ${e.code}');
+              }
+            } catch (e) {
+              if (!context.mounted) return;
+              await showErrorDialog(context, e.toString());
+            }
+          },
+          child: const Text('Sign In'), // Fixed semicolon and comma positioning
+        ),
+        TextButton(
+          onPressed: () {
+            Navigator.of(context).pushNamedAndRemoveUntil(
+              registerRoute, 
+              (route) => false,
+            );
+          },
+          child: const Text('Not Registered yet? Register here!'),
+        ),
+      ],
+    ),
+  );
+}
   
 } // Added missing class closing brace
