@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_app/constants/routes.dart';
 import 'dart:developer' as devtools show log;
+
+import 'package:flutter_app/utilities/error_dialog.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -58,22 +61,24 @@ class _RegisterViewState extends State<RegisterView> {
                   final email = _emailController.text;
                   final password = _passwordController.text;
                   try{
-                    final userCredential = await FirebaseAuth.instance
+                  await FirebaseAuth.instance
                         .createUserWithEmailAndPassword(
                       email: email,
                       password: password,
                     );
-                    print(userCredential);
+                    final user = FirebaseAuth.instance.currentUser;
+                    await user?.sendEmailVerification();
+                    Navigator.of(context).pushNamed(verifyEmailRoute);
                   }
                   on FirebaseAuthException catch (e) {
                     if (e.code == 'weak-password') {
-                      print('The password provided is too weak.');
+                      showErrorDialog(context, 'The password provided is too weak.');
                     } else if (e.code == 'email-already-in-use') {
-                      print('The account already exists for that email.');
+                      showErrorDialog(context, 'The account already exists for that email.');
                     } else if (e.code == 'invalid-email') {
-                      print('The email address is not valid.');
+                      showErrorDialog(context, 'The email address is not valid.');
                     } else {
-                      print('An unknown error occurred: ${e.message}');
+                      showErrorDialog(context, 'An unknown error occurred.');
                     }
                   }
                 }, // Properly closed onPressed callback
