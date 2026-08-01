@@ -36,6 +36,7 @@ void main() async {
       routes : {
         '/login/' : (context) => const LoginView(),
         '/register/' : (context) => const RegisterView(),
+        '/home' :(context) => const MainView(),
       }
     ),
     );
