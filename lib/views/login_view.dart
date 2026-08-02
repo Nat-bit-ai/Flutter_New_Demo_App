@@ -63,12 +63,16 @@ Widget build(BuildContext context) {
                 email: email,
                 password: password,
               );
-              
-              if (!context.mounted) return;
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                homeRoute, 
-                (route) => false,
-              );
+              final user = FirebaseAuth.instance.currentUser;
+              if (user != null && !user.emailVerified) {
+                Navigator.of(context).pushNamed(verifyEmailRoute);
+              } else {
+                if (!context.mounted) return;
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  homeRoute, 
+                  (route) => false,
+                );
+              }
             } on FirebaseAuthException catch (e) {
               if (!context.mounted) return;
               if (e.code == 'user-not-found') {
