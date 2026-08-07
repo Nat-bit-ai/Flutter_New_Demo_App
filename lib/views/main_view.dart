@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_app/constants/routes.dart';
-import 'package:flutter_app/enums/menu_action.dart';
-import 'package:flutter_app/services/auth/auth_service.dart';
 import 'package:flutter_app/services/store/cart_service.dart';
+import 'package:flutter_app/theme/gebeya_theme.dart';
 import 'package:flutter_app/views/store/cart_view.dart';
 import 'package:flutter_app/views/store/products_view.dart';
+import 'package:flutter_app/views/store/profile_view.dart';
 
 class MainView extends StatefulWidget {
   const MainView({super.key});
@@ -15,6 +14,9 @@ class MainView extends StatefulWidget {
 
 class _MainViewState extends State<MainView> {
   final _cart = CartService.instance;
+  int _selectedIndex = 0;
+
+  static const _titles = ['Store', 'My Cart', 'Profile'];
 
   @override
   void initState() {
@@ -32,73 +34,57 @@ class _MainViewState extends State<MainView> {
     if (mounted) setState(() {});
   }
 
+  void _onTabSelected(int index) {
+    setState(() => _selectedIndex = index);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: GebeyaColors.cream,
       appBar: AppBar(
-        title: const Text('Store'),
-        actions: [
-          IconButton(
-            tooltip: 'Cart',
-            onPressed: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const CartView()),
-              );
-            },
+        title: Text(_titles[_selectedIndex]),
+      ),
+      body: IndexedStack(
+        index: _selectedIndex,
+        children: [
+          const ProductsView(),
+          CartView(
+            embedded: true,
+            onOrderPlaced: () => setState(() => _selectedIndex = 0),
+          ),
+          ProfileView(),
+        ],
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        onTap: _onTabSelected,
+        items: [
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.storefront_outlined),
+            activeIcon: Icon(Icons.storefront_rounded),
+            label: 'Store',
+          ),
+          BottomNavigationBarItem(
             icon: Badge(
               label: Text('${_cart.itemCount}'),
               isLabelVisible: _cart.itemCount > 0,
               child: const Icon(Icons.shopping_cart_outlined),
             ),
-          ),
-          PopupMenuButton<MenuAction>(onSelected: (value) async {
-            switch(value){
-              case MenuAction.logout:
-                final shouldlogout = await showLogOutDialog(context);
-                if (shouldlogout){
-                  await AuthService.firebase().logOut();
-                  Navigator.of(context).pushNamedAndRemoveUntil(loginRoute, (_) => false);
-                }
-            }
-          },
-          itemBuilder: (context){
-            return
-            const [PopupMenuItem<MenuAction>(
-              value : MenuAction.logout,
-              child : Text('Log Out'),
+            activeIcon: Badge(
+              label: Text('${_cart.itemCount}'),
+              isLabelVisible: _cart.itemCount > 0,
+              child: const Icon(Icons.shopping_cart_rounded),
             ),
-            ];
-          },)
+            label: 'Cart',
+          ),
+          const BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline_rounded),
+            activeIcon: Icon(Icons.person_rounded),
+            label: 'Profile',
+          ),
         ],
       ),
-      body: const ProductsView(),
     );
   }
-}
-
-
-Future<bool> showLogOutDialog(BuildContext context) {
-  return showDialog<bool>(
-    context: context,
-    builder: (context) {
-      return AlertDialog(
-        title: const Text('Sign Out'),
-        content: const Text('Are you sure you want to sign out?'),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(false);
-            },
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop(true);
-            },
-            child: const Text('Log Out'),
-          ),
-        ],
-      );
-    },
-  ).then((value) => value ?? false);
 }

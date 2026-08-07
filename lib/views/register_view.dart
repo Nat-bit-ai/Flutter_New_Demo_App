@@ -43,12 +43,16 @@ class _RegisterViewState extends State<RegisterView> {
       if (!context.mounted) return;
       Navigator.of(context).pushNamed(verifyEmailRoute);
     } on WeakPasswordAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'Weak password');
     } on EmailAlreadyInUseAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'Email already in use');
     } on InvalidEmailAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'Invalid email');
     } on GenericAuthException catch (e) {
+      if (!context.mounted) return;
       await showErrorDialog(context, e.toString());
     }
   }
@@ -69,6 +73,7 @@ class _RegisterViewState extends State<RegisterView> {
                 eyebrow: 'Join Gebeya',
                 headline: 'Create your\naccount',
                 subtitle: 'Save favorites, track orders, and check out faster.',
+                showIconBadge: false,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),

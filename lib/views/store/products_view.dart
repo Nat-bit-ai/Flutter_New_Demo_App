@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/models/product.dart';
+import 'package:flutter_app/services/store/cart_service.dart';
 import 'package:flutter_app/services/store/fake_store_api_service.dart';
+import 'package:flutter_app/theme/gebeya_theme.dart';
 import 'package:flutter_app/views/store/product_detail_view.dart';
 
 class ProductsView extends StatefulWidget {
@@ -81,49 +83,67 @@ class _ProductsViewState extends State<ProductsView> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(color: GebeyaColors.orange),
+      );
     }
 
     if (_errorMessage != null) {
       return RefreshIndicator(
+        color: GebeyaColors.orange,
         onRefresh: _loadData,
         child: ListView(
           children: [
             const SizedBox(height: 120),
-            Icon(Icons.error_outline, size: 48, color: Colors.grey[500]),
+            Icon(Icons.error_outline, size: 48, color: GebeyaColors.textMuted),
             const SizedBox(height: 12),
-            Center(child: Text(_errorMessage!)),
+            Center(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Text(
+                  _errorMessage!,
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: GebeyaColors.textMuted),
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: OutlinedButton(
+                onPressed: _loadData,
+                child: const Text('Retry'),
+              ),
+            ),
           ],
         ),
       );
     }
 
     return RefreshIndicator(
+      color: GebeyaColors.orange,
       onRefresh: _loadData,
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
             child: TextField(
               controller: _searchController,
+              style: const TextStyle(color: GebeyaColors.ink, fontSize: 14),
               decoration: InputDecoration(
                 hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search),
+                prefixIcon: const Icon(Icons.search, color: GebeyaColors.textMuted),
                 suffixIcon: _searchController.text.isEmpty
                     ? null
                     : IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.clear, color: GebeyaColors.textMuted),
                         onPressed: () => _searchController.clear(),
                       ),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
                 isDense: true,
               ),
             ),
           ),
           SizedBox(
-            height: 40,
+            height: 42,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -133,9 +153,25 @@ class _ProductsViewState extends State<ProductsView> {
                 final category = _categories[index];
                 final isSelected = category == _selectedCategory;
                 return ChoiceChip(
-                  label: Text(category),
+                  label: Text(
+                    category[0].toUpperCase() + category.substring(1),
+                  ),
                   selected: isSelected,
                   onSelected: (_) => _onCategorySelected(category),
+                  backgroundColor: GebeyaColors.creamSoft,
+                  selectedColor: GebeyaColors.ink,
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : GebeyaColors.ink,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12.5,
+                  ),
+                  side: BorderSide(
+                    color: isSelected ? GebeyaColors.ink : GebeyaColors.creamBorder,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  showCheckmark: false,
                 );
               },
             ),
@@ -144,13 +180,24 @@ class _ProductsViewState extends State<ProductsView> {
           Expanded(
             child: _filteredProducts.isEmpty
                 ? ListView(
-                    children: const [
-                      SizedBox(height: 100),
-                      Center(child: Text('No products found')),
+                    children: [
+                      const SizedBox(height: 100),
+                      Icon(Icons.search_off_rounded,
+                          size: 44, color: GebeyaColors.textMuted),
+                      const SizedBox(height: 12),
+                      const Center(
+                        child: Text(
+                          'No products found',
+                          style: TextStyle(
+                            color: GebeyaColors.textMuted,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
                     ],
                   )
                 : GridView.builder(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.fromLTRB(12, 4, 12, 16),
                     gridDelegate:
                         const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 2,
@@ -177,53 +224,95 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      borderRadius: BorderRadius.circular(12),
+      borderRadius: BorderRadius.circular(16),
       onTap: () {
         Navigator.of(context).push(
           MaterialPageRoute(builder: (_) => ProductDetailView(product: product)),
         );
       },
-      child: Card(
+      child: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: GebeyaColors.creamBorder),
+        ),
         clipBehavior: Clip.antiAlias,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
+              child: Container(
+                color: GebeyaColors.creamSoft,
+                padding: const EdgeInsets.all(14),
                 child: Image.network(
                   product.image,
                   fit: BoxFit.contain,
                   errorBuilder: (_, __, ___) => const Icon(
                     Icons.image_not_supported_outlined,
                     size: 40,
+                    color: GebeyaColors.textMuted,
                   ),
                   loadingBuilder: (context, child, progress) {
                     if (progress == null) return child;
                     return const Center(
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: GebeyaColors.orange,
+                      ),
                     );
                   },
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
+              padding: const EdgeInsets.fromLTRB(10, 8, 10, 0),
               child: Text(
                 product.title,
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 12.5,
+                  color: GebeyaColors.ink,
+                  height: 1.25,
+                ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
-              child: Text(
-                '\$${product.price.toStringAsFixed(2)}',
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.bold,
-                ),
+              padding: const EdgeInsets.fromLTRB(10, 6, 10, 10),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '\$${product.price.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: GebeyaColors.orange,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      CartService.instance.addToCart(product);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Added ${product.title} to cart')),
+                      );
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: GebeyaColors.ink,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: const Icon(
+                        Icons.add_rounded,
+                        color: GebeyaColors.orange,
+                        size: 16,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],

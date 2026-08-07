@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_app/services/auth/auth_service.dart';
+import 'package:flutter_app/theme/gebeya_theme.dart';
 import 'package:flutter_app/views/login_view.dart';
 import 'package:flutter_app/views/main_view.dart';
 import 'package:flutter_app/views/register_view.dart';
@@ -24,16 +25,7 @@ void main() async {
   // 3. Launch your app
   runApp(MaterialApp(
       title: 'Gebeya',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-        useMaterial3: true,
-        // Global AppBar configuration
-        appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.blue,
-          foregroundColor: Colors.white,
-          surfaceTintColor: Colors.transparent, // Keeps color pure in Material 3
-        ),
-      ), // Added missing closing parenthesis for ThemeData
+      theme: GebeyaTheme.light,
       home: const HomePage(),
       routes : {
         loginRoute : (context) => const LoginView(),
@@ -67,7 +59,12 @@ class HomePage extends StatelessWidget {
               return const LoginView();
             }
           default:
-              return const CircularProgressIndicator(); 
+              return const Scaffold(
+                backgroundColor: GebeyaColors.cream,
+                body: Center(
+                  child: CircularProgressIndicator(color: GebeyaColors.orange),
+                ),
+              );
           }
         }
       );

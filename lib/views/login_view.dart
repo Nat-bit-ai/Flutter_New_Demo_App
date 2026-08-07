@@ -50,12 +50,16 @@ class _LoginViewState extends State<LoginView> {
         );
       }
     } on UserNotFoundAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'User not found');
     } on WrongPasswordAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'Wrong password');
     } on InvalidEmailAuthException {
+      if (!context.mounted) return;
       await showErrorDialog(context, 'Invalid email');
     } on GenericAuthException catch (e) {
+      if (!context.mounted) return;
       await showErrorDialog(context, e.toString());
     }
   }
@@ -76,6 +80,7 @@ class _LoginViewState extends State<LoginView> {
                 eyebrow: 'Welcome back',
                 headline: 'Sign in to\nGebeya',
                 subtitle: 'Your cart and saved finds are waiting for you.',
+                showIconBadge: false,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),

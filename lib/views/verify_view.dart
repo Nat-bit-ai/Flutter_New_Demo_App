@@ -30,6 +30,7 @@ class _VerifyEmailViewState extends State<VerifyEmailView> {
                 subtitle:
                     "We've sent a verification link to your inbox. "
                     "Click it to activate your Gebeya account.",
+                showBackButton: true,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(24, 28, 24, 32),

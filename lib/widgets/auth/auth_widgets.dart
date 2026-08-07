@@ -8,6 +8,13 @@ class AuthHeroHeader extends StatelessWidget {
   final String eyebrow;
   final String headline;
   final String subtitle;
+  // The wordmark row above already reads as "the logo" - showing this big
+  // circle icon too makes it look like the logo twice on screens where the
+  // icon is the same storefront glyph (login/register). Screens with a
+  // distinct icon (e.g. verify-email's mail icon) can keep it.
+  final bool showIconBadge;
+  // Shows a back arrow above the wordmark and pops the current route.
+  final bool showBackButton;
 
   const AuthHeroHeader({
     super.key,
@@ -15,10 +22,17 @@ class AuthHeroHeader extends StatelessWidget {
     required this.eyebrow,
     required this.headline,
     required this.subtitle,
+    this.showIconBadge = true,
+    this.showBackButton = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    // The header's background bleeds behind the status bar for visual
+    // effect, but the actual content (logo, headline, etc.) must stay
+    // clear of the notch/status bar - so its top padding is the real
+    // safe-area inset plus a little breathing room, not a fixed guess.
+    final topSafePadding = MediaQuery.of(context).padding.top;
     return ClipRRect(
       borderRadius: const BorderRadius.only(
         bottomLeft: Radius.circular(32),
@@ -26,12 +40,11 @@ class AuthHeroHeader extends StatelessWidget {
       ),
       child: Container(
         width: double.infinity,
-        padding: const EdgeInsets.fromLTRB(28, 60, 28, 40),
+        padding: EdgeInsets.fromLTRB(28, topSafePadding + 24, 28, 40),
         color: GebeyaColors.ink,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
-            // Purely decorative ambient glow behind the wordmark.
             Positioned(
               top: -70,
               right: -50,
@@ -42,8 +55,8 @@ class AuthHeroHeader extends StatelessWidget {
                   shape: BoxShape.circle,
                   gradient: RadialGradient(
                     colors: [
-                      GebeyaColors.orange.withOpacity(0.30),
-                      GebeyaColors.orange.withOpacity(0.0),
+                      GebeyaColors.orange.withValues(alpha: 0.30),
+                      GebeyaColors.orange.withValues(alpha: 0.0),
                     ],
                   ),
                 ),
@@ -53,6 +66,18 @@ class AuthHeroHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (showBackButton)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: IconButton(
+                      onPressed: () => Navigator.of(context).maybePop(),
+                      icon: const Icon(Icons.arrow_back_rounded),
+                      color: Colors.white,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                      splashRadius: 20,
+                    ),
+                  ),
                 Row(
                   children: [
                     Container(
@@ -80,18 +105,21 @@ class AuthHeroHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                const SizedBox(height: 36),
-                Container(
-                  width: 54,
-                  height: 54,
-                  decoration: BoxDecoration(
-                    color: GebeyaColors.inkSoft,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: GebeyaColors.orange, width: 1.4),
+                if (showIconBadge) ...[
+                  const SizedBox(height: 36),
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: GebeyaColors.inkSoft,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: GebeyaColors.orange, width: 1.4),
+                    ),
+                    child: Icon(icon, color: GebeyaColors.orange, size: 24),
                   ),
-                  child: Icon(icon, color: GebeyaColors.orange, size: 24),
-                ),
-                const SizedBox(height: 20),
+                  const SizedBox(height: 20),
+                ] else
+                  const SizedBox(height: 28),
                 Text(
                   eyebrow.toUpperCase(),
                   style: const TextStyle(
