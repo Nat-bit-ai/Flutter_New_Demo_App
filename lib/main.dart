@@ -23,7 +23,7 @@ void main() async {
 
   // 3. Launch your app
   runApp(MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Gebeya',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         useMaterial3: true,

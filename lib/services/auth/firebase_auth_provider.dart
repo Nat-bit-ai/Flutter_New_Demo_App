@@ -46,11 +46,32 @@ Future<AuthUser> logIn({
       throw UserNotFoundAuthException();
     } else if (e.code == 'wrong-password') {
       throw WrongPasswordAuthException();
+    } else if (e.code == 'invalid-credential' ||
+        e.code == 'invalid-login-credentials') {
+      // Newer Firebase Auth versions merge "no such user" and
+      // "wrong password" into this single code for security reasons.
+      throw UserNotFoundAuthException();
+    } else if (e.code == 'invalid-email') {
+      throw InvalidEmailAuthException();
+    } else if (e.code == 'network-request-failed') {
+      // ignore: avoid_print
+      print(
+        'network-request-failed details -> message: ${e.message}, '
+        'plugin: ${e.plugin}, stackTrace: ${e.stackTrace}',
+      );
+      throw GenericAuthException(
+        'Network error (network-request-failed). Check your internet '
+        'connection / emulator DNS settings.',
+      );
     } else {
-      throw GenericAuthException();
+      // ignore: avoid_print
+      print('Unhandled FirebaseAuthException code: ${e.code} - ${e.message}');
+      throw GenericAuthException('${e.code}: ${e.message}');
     }
-  } catch (_) {
-    throw GenericAuthException();
+  } catch (e) {
+    // ignore: avoid_print
+    print('Unhandled login error: $e');
+    throw GenericAuthException(e.toString());
   }
 }
 
@@ -78,10 +99,14 @@ Future<AuthUser> logIn({
       } else if (e.code == 'invalid-email') {
         throw InvalidEmailAuthException();
       } else {
-        throw GenericAuthException();
+        // ignore: avoid_print
+        print('Unhandled FirebaseAuthException code: ${e.code} - ${e.message}');
+        throw GenericAuthException('${e.code}: ${e.message}');
       }
-    } catch (_) {
-      throw GenericAuthException();
+    } catch (e) {
+      // ignore: avoid_print
+      print('Unhandled sign-up error: $e');
+      throw GenericAuthException(e.toString());
     }
   }
 
